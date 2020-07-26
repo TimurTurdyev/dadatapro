@@ -206,7 +206,7 @@ class ControllerCatalogDadataPro extends Controller {
 
             if( $tab['status'] === 'default' && $assemble_configuration = $this->assembleСonfiguration($tab['data'], $func_name) ) {
                 if( $route === 'checkout/checkout' || $route === 'account/register' || $route === 'account/address' ) {
-                    $assemble_configuration .= "$(document).on('ajaxSuccess', function(event, jqxhr, settings){if (settings.url.indexOf('country&country_id=176') > 0) { {$func_name}(); }});";
+                    $assemble_configuration .= "$(document).on('ajaxSuccess', function(event, jqxhr, settings){if (settings.url.indexOf('country&country_id=176') > 0) { {$func_name}(); } else if (settings.url.indexOf('country&country_id') > 0) { $('[data-element=\"dadata\"]').remove(); }});";
                 } elseif( $route === 'account/edit' ) {
                     $assemble_configuration .= "$(function() {  {$func_name}(); });";
                 }
@@ -216,6 +216,11 @@ class ControllerCatalogDadataPro extends Controller {
 
             if( $tab['status'] === 'javascript' ) {
                 $tab['javascript'] = ';function ' . $func_name . '(){ ' . $tab['javascript'] . '}';
+                $re_move_code_out_function = '@(.*)(/\*<move_code_out_function>.*</move_code_out_function>\*/)(.*)@ms';
+                preg_match_all($re_move_code_out_function, $tab['javascript'], $move_code,PREG_SET_ORDER, 0);
+                if (count($move_code)) {
+                    $tab['javascript'] = $move_code[0][1] . $move_code[0][3] . $move_code[0][2];
+                }
                 file_put_contents($this->catalog_path . $file_to_route . '.js', $tab['javascript']);
                 $route_setting['addScript'] = $file_to_route . '.js';
             }
